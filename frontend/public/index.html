@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Odia OCR App - Upload, correct, and manage OCR tasks with transliteration support"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Google Fonts for Odia -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Oriya:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Sanscript CDN for Odia transliteration (Primary) -->
+    <script src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@latest/dist/sanscript.min.js"></script>
+    
+    <!-- Fallback CDN if first one fails -->
+    <script>
+      // Check if Sanscript loaded, if not try alternative CDN
+      window.addEventListener('load', function() {
+        if (typeof Sanscript === 'undefined') {
+          console.log('Loading Sanscript from fallback CDN...');
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/gh/indic-transliteration/sanscript.js@latest/sanscript.js';
+          script.onload = function() {
+            console.log('Sanscript loaded from fallback CDN');
+            window.SanscriptLoaded = true;
+          };
+          script.onerror = function() {
+            console.warn('Sanscript failed to load from both CDNs, using built-in transliteration');
+            window.SanscriptLoaded = false;
+          };
+          document.head.appendChild(script);
+        } else {
+          console.log('Sanscript loaded successfully');
+          window.SanscriptLoaded = true;
+        }
+      });
+    </script>
+    
+    <title>Odia OCR App</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
