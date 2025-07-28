@@ -1,6 +1,7 @@
 // src/components/OcrTask.js - FINAL POLISHED VERSION WITH DENTAL/RETROFLEX SUPPORT
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Card, Row, Col, Button, Alert, Spinner, Container, Badge } from 'react-bootstrap';
 import { getTaskDetail, submitCorrection } from '../services/api';
 
 const OcrTask = () => {
@@ -455,7 +456,7 @@ const OcrTask = () => {
 
   const handleSubmit = async () => {
     if (!correctedText.trim()) {
-      setMessage({ text: 'Please provide corrected text before submitting.', type: 'error' });
+      setMessage({ text: 'Please provide corrected text before submitting.', type: 'danger' });
       return;
     }
 
@@ -471,170 +472,195 @@ const OcrTask = () => {
       }, 2000);
     } catch (err) {
       console.error('Submit error:', err);
-      setMessage({ text: err.message || 'Failed to submit correction. Please try again.', type: 'error' });
+      setMessage({ text: err.message || 'Failed to submit correction. Please try again.', type: 'danger' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const renderMessage = () => {
-    if (!message.text) return null;
+  if (loading) {
     return (
-      <div className={`message ${message.type}`}>
-        <span>{message.text}</span>
+      <div className="d-flex flex-column align-items-center justify-content-center min-vh-100">
+        <Spinner animation="border" role="status" variant="primary" className="mb-3">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+        <p className="text-muted">Loading task details...</p>
       </div>
     );
-  };
+  }
 
-  if (loading) return (
-    <div className="loading-container">
-      <div className="spinner"></div>
-      <p>Loading task details...</p>
-    </div>
-  );
+  if (error) {
+    return (
+      <Container>
+        <div className="text-center mt-5">
+          <Alert variant="danger">
+            <Alert.Heading>Error Loading Task</Alert.Heading>
+            <p>{error}</p>
+            <Button variant="outline-danger" onClick={() => navigate('/home')}>
+              <i className="material-icons me-2">home</i>
+              Back to Home
+            </Button>
+          </Alert>
+        </div>
+      </Container>
+    );
+  }
 
-  if (error) return (
-    <div className="error-container">
-      <div className="error-icon">!</div>
-      <h3>Error Loading Task</h3>
-      <p>{error}</p>
-      <button className="btn" onClick={() => navigate('/home')}>
-        <span className="material-icons">home</span>
-        Back to Home
-      </button>
-    </div>
-  );
-
-  if (!task) return (
-    <div className="error-container">
-      <div className="error-icon">!</div>
-      <h3>Task Not Found</h3>
-      <p>The requested task could not be found.</p>
-      <button className="btn" onClick={() => navigate('/home')}>
-        <span className="material-icons">home</span>
-        Back to Home
-      </button>
-    </div>
-  );
+  if (!task) {
+    return (
+      <Container>
+        <div className="text-center mt-5">
+          <Alert variant="warning">
+            <Alert.Heading>Task Not Found</Alert.Heading>
+            <p>The requested task could not be found.</p>
+            <Button variant="outline-warning" onClick={() => navigate('/home')}>
+              <i className="material-icons me-2">home</i>
+              Back to Home
+            </Button>
+          </Alert>
+        </div>
+      </Container>
+    );
+  }
 
   return (
-    <div className="task-container-split">
-      <h1>OCR Task Correction</h1>
+    <Container fluid>
+      <div className="text-center mb-4">
+        <h1 className="text-primary mb-2">OCR Task Correction</h1>
+      </div>
       
-      {renderMessage()}
+      {message.text && (
+        <Alert variant={message.type} dismissible onClose={() => setMessage({ text: '', type: '' })}>
+          {message.text}
+        </Alert>
+      )}
 
-      <div className="task-split-view">
+      <Row>
         {/* Left side - Image */}
-        <div className="image-panel">
-          <h2>
-            <span className="material-icons">image</span>
-            Original Image
-          </h2>
-          <div className="image-container">
-            {task.imageUrl ? (
-              <img 
-                src={`http://localhost:5000${task.imageUrl}`} 
-                alt="OCR Task" 
-                className="task-image"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  setMessage({ text: 'Failed to load image', type: 'error' });
-                }}
-              />
-            ) : (
-              <div className="no-image">
-                <span className="material-icons">broken_image</span>
-                <p>No image available for this task.</p>
+        <Col lg={6} className="mb-4">
+          <Card className="h-100 shadow-sm border-0">
+            <Card.Body className="p-4">
+              <Card.Title className="d-flex align-items-center gap-2 mb-3">
+                <i className="material-icons">image</i>
+                Original Image
+              </Card.Title>
+              <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '400px' }}>
+                {task.imageUrl ? (
+                  <img 
+                    src={`http://localhost:5000${task.imageUrl}`} 
+                    alt="OCR Task" 
+                    className="img-fluid rounded shadow"
+                    style={{ maxHeight: '500px' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      setMessage({ text: 'Failed to load image', type: 'danger' });
+                    }}
+                  />
+                ) : (
+                  <div className="text-center text-muted">
+                    <i className="material-icons mb-3" style={{ fontSize: '4rem' }}>broken_image</i>
+                    <p className="mb-0">No image available for this task.</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+            </Card.Body>
+          </Card>
+        </Col>
 
         {/* Right side - Advanced Odia Editor */}
-        <div className="text-panel">
-          <div className="text-header">
-            <h2>
-              <span className="material-icons">edit</span>
-              Advanced Odia Editor
-            </h2>
-            <div className="transliteration-controls">
-              <button
-                className={`toggle-btn ${isTransliterationEnabled ? 'active' : ''}`}
-                onClick={toggleTransliteration}
-                title={`Toggle advanced Odia transliteration (${transliterationMethod})`}
-              >
-                <span className="material-icons">translate</span>
-                {isTransliterationEnabled ? 'ON' : 'OFF'}
-              </button>
-            </div>
-          </div>
-
-          {isTransliterationEnabled && (
-            <div className="transliteration-help">
-              <p>
-                <strong>🚀 Advanced Odia Editor:</strong> Smart transliteration with dental/retroflex support
-                <span className="method-indicator">
-                  ({transliterationMethod})
-                </span>
-              </p>
-              <div className="quick-examples">
-                <span>Type "na" → ନ (dental) or ଣ (retroflex)</span>
-                <span>Type "ta" → ତ (dental) or ଟ (retroflex)</span>
-                <span>Press Tab/Enter to apply • Escape to cancel</span>
+        <Col lg={6} className="mb-4">
+          <Card className="h-100 shadow-sm border-0">
+            <Card.Body className="p-4 d-flex flex-column">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <Card.Title className="d-flex align-items-center gap-2 mb-0">
+                  <i className="material-icons">edit</i>
+                  Advanced Odia Editor
+                </Card.Title>
+                <Button
+                  variant={isTransliterationEnabled ? 'success' : 'outline-secondary'}
+                  size="sm"
+                  onClick={toggleTransliteration}
+                  title={`Toggle advanced Odia transliteration (${transliterationMethod})`}
+                >
+                  <i className="material-icons me-1">translate</i>
+                  {isTransliterationEnabled ? 'ON' : 'OFF'}
+                </Button>
               </div>
-              <div className="editor-tips">
-                <small>💡 Now supports dental vs retroflex consonants for accurate Odia typing!</small>
-              </div>
-            </div>
-          )}
 
-          <div className="text-edit-area">
-            <div className="editor-wrapper">
-              <textarea
-                ref={textareaRef}
-                className="task-textarea-split advanced-editor"
-                value={correctedText}
-                onChange={handleTextChange}
-                onKeyDown={handleKeyDown}
-                onSelect={(e) => {
-                  setCursorPosition(e.target.selectionStart);
-                }}
-                placeholder="Start typing in English to see smart Odia suggestions with dental/retroflex support..."
-                style={{ fontFamily: 'Noto Sans Oriya, Arial, sans-serif' }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+              {isTransliterationEnabled && (
+                <Alert variant="info" className="mb-3">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <strong>🚀 Advanced Odia Editor:</strong> Smart transliteration with dental/retroflex support
+                    <Badge bg="primary" className="fs-6">
+                      ({transliterationMethod})
+                    </Badge>
+                  </div>
+                  <div className="d-flex gap-2 flex-wrap mb-2">
+                    <Badge bg="light" text="dark">Type "na" → ନ (dental) or ଣ (retroflex)</Badge>
+                    <Badge bg="light" text="dark">Type "ta" → ତ (dental) or ଟ (retroflex)</Badge>
+                  </div>
+                  <small className="d-block">
+                    💡 Press Tab/Enter to apply • Escape to cancel • Now supports dental vs retroflex consonants for accurate Odia typing!
+                  </small>
+                </Alert>
+              )}
+
+              <div className="flex-fill">
+                <textarea
+                  ref={textareaRef}
+                  className="form-control h-100"
+                  value={correctedText}
+                  onChange={handleTextChange}
+                  onKeyDown={handleKeyDown}
+                  onSelect={(e) => {
+                    setCursorPosition(e.target.selectionStart);
+                  }}
+                  placeholder="Start typing in English to see smart Odia suggestions with dental/retroflex support..."
+                  style={{ 
+                    fontFamily: 'Noto Sans Oriya, Arial, sans-serif',
+                    fontSize: '1.1rem',
+                    lineHeight: '1.6',
+                    resize: 'none'
+                  }}
+                />
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
       {/* Action buttons */}
-      <div className="task-actions">
-        <button 
-          className="btn" 
+      <div className="d-flex gap-3 justify-content-center mb-4">
+        <Button 
+          variant="primary" 
+          size="lg"
           onClick={handleSubmit} 
           disabled={isSubmitting || !correctedText.trim()}
+          className="d-flex align-items-center gap-2"
         >
           {isSubmitting ? (
             <>
-              <div className="spinner-small"></div>
-              <span>Submitting...</span>
+              <Spinner animation="border" size="sm" />
+              Submitting...
             </>
           ) : (
             <>
-              <span className="material-icons">check</span>
-              <span>Submit Correction</span>
+              <i className="material-icons">check</i>
+              Submit Correction
             </>
           )}
-        </button>
+        </Button>
         
-        <button 
-          className="btn secondary" 
+        <Button 
+          variant="outline-secondary" 
+          size="lg"
           onClick={() => navigate('/home')}
           disabled={isSubmitting}
+          className="d-flex align-items-center gap-2"
         >
-          <span className="material-icons">home</span>
-          <span>Back to Home</span>
-        </button>
+          <i className="material-icons">home</i>
+          Back to Home
+        </Button>
       </div>
 
       {/* ENHANCED POPUP WITH DENTAL/RETROFLEX SUPPORT */}
@@ -740,7 +766,7 @@ const OcrTask = () => {
           </div>
         </div>
       )}
-    </div>
+    </Container>
   );
 };
 

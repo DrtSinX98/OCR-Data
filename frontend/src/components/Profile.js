@@ -1,5 +1,6 @@
 // src/components/Profile.js - COMPLETE WORKING VERSION
 import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Button, Badge, Spinner, Alert, Container, Form } from 'react-bootstrap';
 import { getProfile, updateDisplayName } from '../services/api';
 
 const Profile = ({ user: propUser }) => {
@@ -65,184 +66,195 @@ const Profile = ({ user: propUser }) => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'in_progress': { color: 'var(--warning)', text: 'In Progress' },
-      'submitted': { color: 'var(--info)', text: 'Submitted' },
-      'approved': { color: 'var(--success)', text: 'Approved' },
-      'assigned': { color: 'var(--secondary)', text: 'Assigned' }
+      'in_progress': { variant: 'warning', text: 'In Progress' },
+      'submitted': { variant: 'info', text: 'Submitted' },
+      'approved': { variant: 'success', text: 'Approved' },
+      'assigned': { variant: 'secondary', text: 'Assigned' }
     };
-    return badges[status] || { color: 'var(--secondary)', text: status };
+    return badges[status] || { variant: 'secondary', text: status };
   };
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading your profile...</p>
+      <div className="d-flex flex-column align-items-center justify-content-center min-vh-100">
+        <Spinner animation="border" role="status" variant="primary" className="mb-3">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+        <p className="text-muted">Loading your profile...</p>
       </div>
     );
   }
 
   if (error && !user) {
     return (
-      <div className="error-container">
-        <div className="error-icon">!</div>
-        <h3>Error Loading Profile</h3>
-        <p>{error}</p>
-        <button className="btn" onClick={fetchProfile}>
-          <span className="material-icons">refresh</span>
-          Try Again
-        </button>
-      </div>
+      <Container>
+        <div className="text-center mt-5">
+          <Alert variant="danger">
+            <Alert.Heading>Error Loading Profile</Alert.Heading>
+            <p>{error}</p>
+            <Button variant="outline-danger" onClick={fetchProfile}>
+              <i className="material-icons me-2">refresh</i>
+              Try Again
+            </Button>
+          </Alert>
+        </div>
+      </Container>
     );
   }
 
   return (
-    <div className="profile-container">
-      <div className="profile-header">
-        <h1>My Profile</h1>
-        <p>Manage your account information and preferences</p>
+    <Container>
+      <div className="text-center mb-5">
+        <h1 className="text-primary mb-2">My Profile</h1>
+        <p className="text-muted fs-5">Manage your account information and preferences</p>
       </div>
 
       {error && (
-        <div className="message error">
-          <span className="material-icons">error</span>
+        <Alert variant="danger" dismissible onClose={() => setError('')}>
           {error}
-        </div>
+        </Alert>
       )}
 
-      <div className="profile-content">
-        {/* Profile Info Card */}
-        <div className="profile-card">
-          <div className="profile-avatar">
-            <span className="material-icons">person</span>
-          </div>
-          
-          <div className="profile-info">
-            <div className="info-row">
-              <label>Display Name:</label>
-              <div className="info-value">
-                {editingName ? (
-                  <div className="edit-name-container">
-                    <input
-                      type="text"
-                      value={newDisplayName}
-                      onChange={(e) => setNewDisplayName(e.target.value)}
-                      placeholder={getDisplayName()}
-                      maxLength={50}
-                      disabled={updating}
-                    />
-                    <div className="edit-actions">
-                      <button
-                        className="btn small primary"
-                        onClick={handleUpdateDisplayName}
-                        disabled={updating || !newDisplayName.trim()}
-                      >
-                        {updating ? 'Saving...' : 'Save'}
-                      </button>
-                      <button
-                        className="btn small secondary"
-                        onClick={() => {
-                          setEditingName(false);
-                          setNewDisplayName('');
-                          setError('');
-                        }}
-                        disabled={updating}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="display-name-container">
-                    <span>{getDisplayName()}</span>
-                    <button
-                      className="btn small secondary"
-                      onClick={() => {
-                        setEditingName(true);
-                        setNewDisplayName(user?.displayName || '');
-                      }}
-                    >
-                      <span className="material-icons">edit</span>
-                      Edit
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="info-row">
-              <label>Email:</label>
-              <div className="info-value">
-                <span>{user?.email}</span>
-              </div>
-            </div>
-
-            <div className="info-row">
-              <label>Member Since:</label>
-              <div className="info-value">
-                <span>{new Date(user?.createdAt).toLocaleDateString()}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Tasks */}
-        <div className="recent-tasks-card">
-          <h3>Recent Tasks</h3>
-          {recentTasks.length > 0 ? (
-            <div className="tasks-list">
-              {recentTasks.map((task, index) => {
-                const badge = getStatusBadge(task.status);
-                return (
-                  <div key={task._id || index} className="task-item-profile">
-                    <div className="task-thumbnail">
-                      {task.imageUrl ? (
-                        <img 
-                          src={`http://localhost:5000${task.imageUrl}`} 
-                          alt="Task"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
+      <Row>
+        <Col lg={8} className="mb-4">
+          {/* Profile Info Card */}
+          <Card className="shadow-sm border-0">
+            <Card.Body className="p-4">
+              <div className="d-flex gap-4 align-items-start">
+                <div className="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle" style={{ width: '100px', height: '100px' }}>
+                  <i className="material-icons text-primary" style={{ fontSize: '3rem' }}>person</i>
+                </div>
+                
+                <div className="flex-fill">
+                  <div className="mb-4">
+                    <h6 className="text-muted text-uppercase mb-2">Display Name</h6>
+                    {editingName ? (
+                      <div>
+                        <Form.Control
+                          type="text"
+                          value={newDisplayName}
+                          onChange={(e) => setNewDisplayName(e.target.value)}
+                          placeholder={getDisplayName()}
+                          maxLength={50}
+                          disabled={updating}
+                          className="mb-2"
                         />
-                      ) : null}
-                      <div className="no-image-thumb">
-                        <span className="material-icons">image</span>
-                      </div>
-                    </div>
-
-                    <div className="task-details-profile">
-                      <div className="task-status-date">
-                        <span 
-                          className="status-badge small"
-                          style={{ background: badge.color }}
-                        >
-                          {badge.text}
-                        </span>
-                        <span className="task-date">
-                          {new Date(task.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      {task.correctedText && (
-                        <div className="task-preview">
-                          {task.correctedText.substring(0, 80)}...
+                        <div className="d-flex gap-2">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={handleUpdateDisplayName}
+                            disabled={updating || !newDisplayName.trim()}
+                          >
+                            {updating ? 'Saving...' : 'Save'}
+                          </Button>
+                          <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            onClick={() => {
+                              setEditingName(false);
+                              setNewDisplayName('');
+                              setError('');
+                            }}
+                            disabled={updating}
+                          >
+                            Cancel
+                          </Button>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="d-flex align-items-center gap-3">
+                        <span className="fs-5 fw-bold">{getDisplayName()}</span>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          onClick={() => {
+                            setEditingName(true);
+                            setNewDisplayName(user?.displayName || '');
+                          }}
+                        >
+                          <i className="material-icons me-1">edit</i>
+                          Edit
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="no-tasks-profile">
-              <span className="material-icons">inbox</span>
-              <p>No recent tasks found</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+
+                  <div className="mb-3">
+                    <h6 className="text-muted text-uppercase mb-1">Email</h6>
+                    <p className="mb-0 fs-6">{user?.email}</p>
+                  </div>
+
+                  <div>
+                    <h6 className="text-muted text-uppercase mb-1">Member Since</h6>
+                    <p className="mb-0 fs-6">{new Date(user?.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col lg={4}>
+          {/* Recent Tasks */}
+          <Card className="shadow-sm border-0">
+            <Card.Body className="p-4">
+              <h3 className="mb-4">Recent Tasks</h3>
+              {recentTasks.length > 0 ? (
+                <div>
+                  {recentTasks.map((task, index) => {
+                    const badge = getStatusBadge(task.status);
+                    return (
+                      <div key={task._id || index} className="d-flex gap-3 p-3 border rounded mb-3">
+                        <div className="flex-shrink-0" style={{ width: '60px', height: '60px' }}>
+                          {task.imageUrl ? (
+                            <img 
+                              src={`http://localhost:5000${task.imageUrl}`} 
+                              alt="Task"
+                              className="w-100 h-100 rounded"
+                              style={{ objectFit: 'cover' }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-100 h-100 bg-light rounded d-flex align-items-center justify-content-center">
+                              <i className="material-icons text-muted">image</i>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-fill">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <Badge bg={badge.variant} className="fs-6">
+                              {badge.text}
+                            </Badge>
+                            <small className="text-muted">
+                              {new Date(task.createdAt).toLocaleDateString()}
+                            </small>
+                          </div>
+
+                          {task.correctedText && (
+                            <p className="mb-0 text-muted small">
+                              {task.correctedText.substring(0, 80)}...
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <i className="material-icons text-muted mb-3" style={{ fontSize: '3rem' }}>inbox</i>
+                  <p className="text-muted mb-0">No recent tasks found</p>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

@@ -1,5 +1,6 @@
 // src/components/DisplayNameModal.js
 import React, { useState } from 'react';
+import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { updateDisplayName } from '../services/api';
 
 const DisplayNameModal = ({ isOpen, onClose, onSave }) => {
@@ -41,27 +42,26 @@ const DisplayNameModal = ({ isOpen, onClose, onSave }) => {
     setError('');
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2>Welcome! What should we call you? 🎉</h2>
-          <p>Help us personalize your experience by telling us your preferred name.</p>
-        </div>
-        
+    <Modal show={isOpen} onHide={onClose} centered backdrop="static">
+      <Modal.Header closeButton>
+        <Modal.Title className="text-center w-100">
+          <h2 className="text-primary mb-2">Welcome! What should we call you? 🎉</h2>
+          <p className="text-muted mb-0">Help us personalize your experience by telling us your preferred name.</p>
+        </Modal.Title>
+      </Modal.Header>
+      
+      <Modal.Body>
         {error && (
-          <div className="message error">
-            <span className="material-icons">error</span>
+          <Alert variant="danger" dismissible onClose={() => setError('')}>
             {error}
-          </div>
+          </Alert>
         )}
         
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="displayName">Your Name:</label>
-            <input
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-4">
+            <Form.Label htmlFor="displayName">Your Name</Form.Label>
+            <Form.Control
               type="text"
               id="displayName"
               value={name}
@@ -69,46 +69,49 @@ const DisplayNameModal = ({ isOpen, onClose, onSave }) => {
               placeholder="Enter your preferred name"
               maxLength={50}
               disabled={loading}
-              style={{ fontSize: '1.1rem', padding: '1rem' }}
+              size="lg"
             />
-          </div>
+          </Form.Group>
           
-          <div className="modal-actions">
-            <button 
+          <div className="d-flex gap-3">
+            <Button 
               type="submit" 
-              className="btn primary" 
+              variant="primary" 
+              size="lg"
+              className="flex-fill d-flex align-items-center justify-content-center"
               disabled={loading || !name.trim()}
             >
               {loading ? (
                 <>
-                  <div className="spinner-small"></div>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                   Saving...
                 </>
               ) : (
                 <>
-                  <span className="material-icons">check</span>
+                  <i className="material-icons me-2">check</i>
                   Save Name
                 </>
               )}
-            </button>
+            </Button>
             
-            <button 
+            <Button 
               type="button" 
-              className="btn secondary" 
+              variant="outline-secondary"
+              size="lg"
               onClick={handleSkip}
               disabled={loading}
             >
-              <span className="material-icons">skip_next</span>
+              <i className="material-icons me-2">skip_next</i>
               Skip for now
-            </button>
+            </Button>
           </div>
-        </form>
-        
-        <div className="modal-footer">
-          <small>You can always change this later in your profile settings.</small>
-        </div>
-      </div>
-    </div>
+        </Form>
+      </Modal.Body>
+      
+      <Modal.Footer className="justify-content-center">
+        <small className="text-muted">You can always change this later in your profile settings.</small>
+      </Modal.Footer>
+    </Modal>
   );
 };
 

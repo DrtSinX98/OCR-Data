@@ -1,12 +1,19 @@
 // src/components/Home.js
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Card, Row, Col, Button, Badge, Spinner, Alert, Container } from 'react-bootstrap';
 import { getHomeStats, getProfile } from '../services/api';
 
 // Icons for the stats cards
 const StatIcon = ({ icon, color }) => (
-  <div className="stat-icon">
-    <span className="material-icons" style={{ color }}>{icon}</span>
+  <div className="d-flex align-items-center justify-content-center" style={{ 
+    width: '60px', 
+    height: '60px', 
+    borderRadius: '12px',
+    backgroundColor: `${color}20`,
+    color: color
+  }}>
+    <i className="material-icons" style={{ fontSize: '2rem' }}>{icon}</i>
   </div>
 );
 
@@ -86,191 +93,232 @@ const Home = ({ user: propUser }) => {
 
   const getTaskStatusBadge = (status) => {
     const badges = {
-      'in_progress': { color: 'var(--warning)', text: 'In Progress' },
-      'submitted': { color: 'var(--info)', text: 'Submitted' },
-      'approved': { color: 'var(--success)', text: 'Approved' },
-      'assigned': { color: 'var(--secondary)', text: 'Assigned' }
+      'in_progress': { variant: 'warning', text: 'In Progress' },
+      'submitted': { variant: 'info', text: 'Submitted' },
+      'approved': { variant: 'success', text: 'Approved' },
+      'assigned': { variant: 'secondary', text: 'Assigned' }
     };
-    return badges[status] || { color: 'var(--secondary)', text: status };
+    return badges[status] || { variant: 'secondary', text: status };
   };
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading your dashboard...</p>
+      <div className="d-flex flex-column align-items-center justify-content-center min-vh-100">
+        <Spinner animation="border" role="status" variant="primary" className="mb-3">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+        <p className="text-muted">Loading your dashboard...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="error-container">
-        <div className="error-icon">!</div>
-        <h3>Error Loading Dashboard</h3>
-        <p>{error}</p>
-        <button 
-          className="btn" 
-          onClick={() => window.location.reload()}
-        >
-          <span className="material-icons">refresh</span>
-          Try Again
-        </button>
-      </div>
+      <Container>
+        <div className="text-center mt-5">
+          <Alert variant="danger">
+            <Alert.Heading>Error Loading Dashboard</Alert.Heading>
+            <p>{error}</p>
+            <Button 
+              variant="outline-danger" 
+              onClick={() => window.location.reload()}
+            >
+              <i className="material-icons me-2">refresh</i>
+              Try Again
+            </Button>
+          </Alert>
+        </div>
+      </Container>
     );
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>Welcome back, {getDisplayName()}! 👋</h1>
-        <p className="welcome-message">
+    <Container>
+      <div className="text-center mb-5">
+        <h1 className="text-primary mb-2">Welcome back, {getDisplayName()}! 👋</h1>
+        <p className="text-muted fs-5">
           Here's what's happening with your Odia OCR tasks
         </p>
       </div>
 
       {/* Stats Overview */}
-      <div className="stats-section">
-        <h2>Task Overview</h2>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <StatIcon icon="assignment" color="var(--primary)" />
-            <div className="stat-content">
-              <h3>Total Assigned</h3>
-              <p className="stat-value">{stats.totalAssigned}</p>
-              <p className="stat-desc">All tasks assigned to you</p>
-            </div>
-          </div>
+      <div className="mb-5">
+        <h2 className="mb-4">Task Overview</h2>
+        <Row>
+          <Col lg={3} md={6} className="mb-3">
+            <Card className="h-100 shadow-sm border-0">
+              <Card.Body className="d-flex align-items-center">
+                <StatIcon icon="assignment" color="#0d6efd" />
+                <div className="ms-3">
+                  <h6 className="text-muted text-uppercase mb-1">Total Assigned</h6>
+                  <h3 className="mb-1 fw-bold">{stats.totalAssigned}</h3>
+                  <small className="text-muted">All tasks assigned to you</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
           
-          <div className="stat-card">
-            <StatIcon icon="hourglass_empty" color="var(--warning)" />
-            <div className="stat-content">
-              <h3>In Progress</h3>
-              <p className="stat-value">{stats.totalInProgress}</p>
-              <p className="stat-desc">Currently working on</p>
-            </div>
-          </div>
+          <Col lg={3} md={6} className="mb-3">
+            <Card className="h-100 shadow-sm border-0">
+              <Card.Body className="d-flex align-items-center">
+                <StatIcon icon="hourglass_empty" color="#ffc107" />
+                <div className="ms-3">
+                  <h6 className="text-muted text-uppercase mb-1">In Progress</h6>
+                  <h3 className="mb-1 fw-bold">{stats.totalInProgress}</h3>
+                  <small className="text-muted">Currently working on</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
           
-          <div className="stat-card">
-            <StatIcon icon="check_circle" color="var(--success)" />
-            <div className="stat-content">
-              <h3>Approved</h3>
-              <p className="stat-value">{stats.totalApproved}</p>
-              <p className="stat-desc">Successfully completed</p>
-            </div>
-          </div>
+          <Col lg={3} md={6} className="mb-3">
+            <Card className="h-100 shadow-sm border-0">
+              <Card.Body className="d-flex align-items-center">
+                <StatIcon icon="check_circle" color="#198754" />
+                <div className="ms-3">
+                  <h6 className="text-muted text-uppercase mb-1">Approved</h6>
+                  <h3 className="mb-1 fw-bold">{stats.totalApproved}</h3>
+                  <small className="text-muted">Successfully completed</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
           
-          <div className="stat-card">
-            <StatIcon icon="trending_up" color="var(--info)" />
-            <div className="stat-content">
-              <h3>Accuracy Rate</h3>
-              <p className="stat-value">{stats.accuracyRate}%</p>
-              <p className="stat-desc">Approval rate on submission</p>
-            </div>
-          </div>
-        </div>
+          <Col lg={3} md={6} className="mb-3">
+            <Card className="h-100 shadow-sm border-0">
+              <Card.Body className="d-flex align-items-center">
+                <StatIcon icon="trending_up" color="#0dcaf0" />
+                <div className="ms-3">
+                  <h6 className="text-muted text-uppercase mb-1">Accuracy Rate</h6>
+                  <h3 className="mb-1 fw-bold">{stats.accuracyRate}%</h3>
+                  <small className="text-muted">Approval rate on submission</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
       </div>
 
       {/* Quick Actions */}
-      <div className="quick-actions-section">
-        <h2>Quick Actions</h2>
-        <p style={{ color: 'var(--gray-600)', marginTop: '-0.5rem' }}>
-          Get started with these common tasks
-        </p>
-        <div className="action-buttons">
-          <button 
-            className="action-btn primary"
-            onClick={() => handleQuickAction('upload')}
-          >
-            <span className="material-icons">upload_file</span>
-            <span>Upload New Image</span>
-          </button>
-          
-          <button 
-            className="action-btn secondary"
-            onClick={() => handleQuickAction('assign')}
-          >
-            <span className="material-icons">assignment_ind</span>
-            <span>Assign Me a Task</span>
-          </button>
-          
-          <button 
-            className="action-btn secondary"
-            onClick={() => handleQuickAction('history')}
-          >
-            <span className="material-icons">history</span>
-            <span>View My History</span>
-          </button>
-          
-          <button 
-            className="action-btn tertiary"
-            onClick={() => handleQuickAction('profile')}
-          >
-            <span className="material-icons">person</span>
-            <span>View Profile</span>
-          </button>
-        </div>
-      </div>
+      <Card className="shadow-sm border-0 mb-5">
+        <Card.Body className="p-4">
+          <h2 className="mb-3">Quick Actions</h2>
+          <p className="text-muted mb-4">
+            Get started with these common tasks
+          </p>
+          <Row>
+            <Col md={3} sm={6} className="mb-3">
+              <Button 
+                variant="primary" 
+                size="lg" 
+                className="w-100 d-flex align-items-center justify-content-center"
+                onClick={() => handleQuickAction('upload')}
+              >
+                <i className="material-icons me-2">upload_file</i>
+                Upload New Image
+              </Button>
+            </Col>
+            
+            <Col md={3} sm={6} className="mb-3">
+              <Button 
+                variant="outline-primary" 
+                size="lg" 
+                className="w-100 d-flex align-items-center justify-content-center"
+                onClick={() => handleQuickAction('assign')}
+              >
+                <i className="material-icons me-2">assignment_ind</i>
+                Assign Me a Task
+              </Button>
+            </Col>
+            
+            <Col md={3} sm={6} className="mb-3">
+              <Button 
+                variant="outline-secondary" 
+                size="lg" 
+                className="w-100 d-flex align-items-center justify-content-center"
+                onClick={() => handleQuickAction('history')}
+              >
+                <i className="material-icons me-2">history</i>
+                View My History
+              </Button>
+            </Col>
+            
+            <Col md={3} sm={6} className="mb-3">
+              <Button 
+                variant="outline-info" 
+                size="lg" 
+                className="w-100 d-flex align-items-center justify-content-center"
+                onClick={() => handleQuickAction('profile')}
+              >
+                <i className="material-icons me-2">person</i>
+                View Profile
+              </Button>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
 
       {/* Recent Activity */}
       {recentTasks.length > 0 && (
-        <div className="recent-activity-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2>Recent Activity</h2>
-            <Link to="/history" className="view-all-link">
-              View All
-              <span className="material-icons">arrow_forward</span>
-            </Link>
-          </div>
-          
-          <div className="recent-tasks-grid">
-            {recentTasks.slice(0, 3).map((task, index) => (
-              <div key={task._id || index} className="task-card">
-                <div className="task-image-preview">
-                  {task.imageUrl ? (
-                    <img 
-                      src={`http://localhost:5000${task.imageUrl}`} 
-                      alt="Task preview"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="no-preview">
-                      <span className="material-icons">image</span>
+        <Card className="shadow-sm border-0">
+          <Card.Body className="p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h2 className="mb-0">Recent Activity</h2>
+              <Link to="/history" className="text-decoration-none d-flex align-items-center">
+                View All
+                <i className="material-icons ms-1">arrow_forward</i>
+              </Link>
+            </div>
+            
+            <Row>
+              {recentTasks.slice(0, 3).map((task, index) => (
+                <Col lg={4} md={6} className="mb-3" key={task._id || index}>
+                  <Card className="h-100 border">
+                    <div style={{ height: '150px', overflow: 'hidden' }}>
+                      {task.imageUrl ? (
+                        <img 
+                          src={`http://localhost:5000${task.imageUrl}`} 
+                          alt="Task preview"
+                          className="w-100 h-100"
+                          style={{ objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="d-flex align-items-center justify-content-center h-100 bg-light">
+                          <i className="material-icons text-muted" style={{ fontSize: '3rem' }}>image</i>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                
-                <div className="task-info">
-                  <div className="task-status">
-                    <span 
-                      className="status-badge" 
-                      style={{ background: getTaskStatusBadge(task.status).color }}
-                    >
-                      {getTaskStatusBadge(task.status).text}
-                    </span>
-                  </div>
-                  
-                  <p className="task-date">
-                    {new Date(task.createdAt).toLocaleDateString()}
-                  </p>
-                  
-                  {task.status === 'in_progress' && (
-                    <Link 
-                      to={`/ocr/task/${task._id}`}
-                      className="continue-btn"
-                    >
-                      Continue
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                    
+                    <Card.Body>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <Badge bg={getTaskStatusBadge(task.status).variant}>
+                          {getTaskStatusBadge(task.status).text}
+                        </Badge>
+                        <small className="text-muted">
+                          {new Date(task.createdAt).toLocaleDateString()}
+                        </small>
+                      </div>
+                      
+                      {task.status === 'in_progress' && (
+                        <Link 
+                          to={`/ocr/task/${task._id}`}
+                          className="btn btn-primary btn-sm w-100"
+                        >
+                          Continue
+                        </Link>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </Card.Body>
+        </Card>
       )}
-    </div>
+    </Container>
   );
 };
 
